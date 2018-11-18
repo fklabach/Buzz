@@ -187,7 +187,6 @@ void buzzvm_process_inmsgs(buzzvm_t vm) {
             const buzzvstig_elem_t* l = buzzvstig_fetch(*vs, &k);
             if((!l)                             || /* Element not found */
                lamport_isnewer(v->timestamp, (*l)->timestamp)) { /* Local element is older */
-               printf("is newer, update\n");
                /* Local element must be updated */
                /* Store element */
                buzzvstig_store(*vs, &k, &v);
