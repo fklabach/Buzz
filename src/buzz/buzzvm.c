@@ -121,6 +121,11 @@ void buzzvm_outmsg_destroy(uint32_t pos, void* data, void* param) {
    fprintf(stderr, "[TODO] %s:%d\n", __FILE__, __LINE__);
 }
 
+static int lamport_isnewer(uint16_t msg_timestamp, uint16_t local_timestamp) {
+  return( (local_timestamp < msg_timestamp) ||
+          ((local_timestamp > msg_timestamp) && ((local_timestamp-msg_timestamp) > 100)) );
+}
+
 void buzzvm_process_inmsgs(buzzvm_t vm) {
    /* Go through the messages */
    while(!buzzinmsg_queue_isempty(vm->inmsgs)) {
@@ -180,8 +185,14 @@ void buzzvm_process_inmsgs(buzzvm_t vm) {
             /* Deserialization successful */
             /* Fetch local vstig element */
             const buzzvstig_elem_t* l = buzzvstig_fetch(*vs, &k);
+            if(l)
+            {
+              printf("local timestamp: %d, ", (*l)->timestamp);
+            }
+            printf("new timestamp: %d\n", v->timestamp);
             if((!l)                             || /* Element not found */
-               ((*l)->timestamp < v->timestamp)) { /* Local element is older */
+               lamport_isnewer(v->timestamp, (*l)->timestamp)) { /* Local element is older */
+               printf("is newer, update\n");
                /* Local element must be updated */
                /* Store element */
                buzzvstig_store(*vs, &k, &v);
